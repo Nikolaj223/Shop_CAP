@@ -36,7 +36,7 @@ contract ShopCAPPlatform is Ownable {
 
         partnerRegistry = PartnerRegistry(_partnerRegistryAddress);
         cashbackManager = CashbackManager(_cashbackManagerAddress);
-        cashbackManager.transferOwnership(address(this));
+        // cashbackManager.transferOwnership(address(this));
     }
 
     // ========================================================================
