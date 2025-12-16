@@ -1,8 +1,8 @@
 // src/utils/contract-config.js
-import ShopCAPTokenABI from "../contracts/abi/ShopCAPToken.json";
-import PartnerRegistryABI from "../contracts/abi/PartnerRegistry.json";
-import CashbackManagerABI from "../contracts/abi/CashbackManager.json";
-import ShopCAPPlatformABI from "../contracts/abi/ShopCAPPlatform.json";
+import ShopCAPTokenABI from "../../contracts/abi/ShopCAPToken.json";
+import PartnerRegistryABI from "../../contracts/abi/PartnerRegistry.json";
+import CashbackManagerABI from "../../contracts/abi/CashbackManager.json";
+import ShopCAPPlatformABI from "../../contracts/abi/ShopCAPPlatform.json";
 
 // Адреса контрактов для разных сетей
 export const contractAddresses = {

@@ -1,7 +1,7 @@
 // src/components/Auth/ConnectWalletPage.js
 import React, { useContext } from "react";
 import { AuthContext } from "./Web3AuthContext"; // Используем новый Web3AuthContext
-import "../App.css"; // Импортируем общие стили приложения
+import "../../App.css"; // Импортируем общие стили приложения
 import "./ConnectWalletPage.css"; // Создаем и импортируем файл для стилей этой страницы
 
 const ConnectWalletPage = () => {
