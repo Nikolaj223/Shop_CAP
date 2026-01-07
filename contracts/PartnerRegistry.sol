@@ -45,7 +45,7 @@ contract PartnerRegistry is Ownable {
         string memory _description,
         string memory _referralLink,
         address _partnerWallet
-    ) external onlyOwner returns (uint256) {
+    ) external returns (uint256) {
         require(_partnerWallet != address(0), "Partner wallet cannot be zero address");
         _partnerIdCounter++;
         uint256 newPartnerId = _partnerIdCounter;
@@ -71,7 +71,7 @@ contract PartnerRegistry is Ownable {
         string memory _description,
         string memory _referralLink,
         address _partnerWallet
-    ) external onlyOwner {
+    ) external {
         require(_partnerWallet != address(0), "Partner wallet cannot be zero address");
         require(_partnerId > 0 && _partnerId <= _partnerIdCounter, "Invalid partner ID");
 
@@ -90,7 +90,7 @@ contract PartnerRegistry is Ownable {
  * @param _partnerId The partner's ID.
  * @param _isActive The new activity status (true for activation, false for deactivation).
  */
-    function togglePartnerStatus(uint256 _partnerId, bool _isActive) external onlyOwner {
+    function togglePartnerStatus(uint256 _partnerId, bool _isActive) external {
         require(_partnerId > 0 && _partnerId <= _partnerIdCounter, "Invalid partner ID");
         partners[_partnerId].isActive = _isActive;
         emit PartnerStatusToggled(_partnerId, _isActive);

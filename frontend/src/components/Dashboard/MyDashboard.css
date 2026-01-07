@@ -1,197 +1,162 @@
-/* Import Google Fonts for a modern look */
-/* Main dashboard container */
-.my-dashboard {
-    width: 100%;
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 20px;
-    color: #ffffff;
-    font-family: "Poppins", sans-serif;
+.dashboard-container {
     display: flex;
     flex-direction: column;
-    gap: 25px;
-    box-sizing: border-box;
+    align-items: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+    background: #0f172a;
+    color: #f8fafc;
 }
 
-/* General style for cards (glass effect) */
-.info-card,
-.dashboard-card,
-.registration-form {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+.dashboard-content {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
 }
 
-/* Headlines */
-.dashboard-title {
-    font-size: 2.5rem;
-    font-weight: 700;
+.dashboard-header {
     text-align: center;
+    margin-bottom: 40px;
+}
+
+.dashboard-header h1 {
+    font-size: 2.5rem;
     margin-bottom: 10px;
-    background: linear-gradient(90deg, #fff, #94a3b8);
+    background: linear-gradient(to right, #818cf8, #c084fc);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-.section-title {
-    font-size: 1.5rem;
-    margin-top: 20px;
-    color: #cbd5e1;
+.scap-section.glass-card {
+    text-align: center;
+    padding: 30px;
 }
 
-/* Account Information */
-.info-card p {
-    margin: 12px 0;
+.balance-badge {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 16px;
+    margin: 20px 0;
+    border: 1px inset rgba(255, 255, 255, 0.1);
+}
+
+.balance-amount {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #6366f1;
+}
+
+.balance-unit {
+    margin-left: 10px;
     font-size: 1.1rem;
     color: #94a3b8;
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.info-card strong {
-    color: #60a5fa;
-    word-break: break-all;
-}
-
-/* Input fields and forms */
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: #e2e8f0;
-}
-
-.form-input,
-.form-textarea {
-    width: 100%;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 12px 15px;
-    color: white;
-    font-size: 1rem;
-    outline: none;
-    transition: border-color 0.3s ease;
-    box-sizing: border-box;
-}
-
-.form-input:focus,
-.form-textarea:focus {
-    border-color: #3b82f6;
-}
-
-.form-textarea {
-    min-height: 100px;
-    resize: vertical;
-}
-
-.mint-button,
-.submit-button,
-.connect-button {
-    width: 100%;
-    padding: 15px;
-    border-radius: 12px;
-    border: none;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 10px;
 }
 
 .mint-button {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(99, 102, 241, 0.5);
+    background: rgba(99, 102, 241, 0.1);
+    color: #a5b4fc;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mint-button:hover:not(:disabled) {
+    background: #6366f1;
     color: white;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
 }
 
-.submit-button {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    color: white;
+.table-responsive {
+    overflow-x: auto;
+    margin-top: 20px;
 }
 
-.connect-button {
-    background: #f59e0b;
-    color: white;
-    max-width: 300px;
+.partners-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
 }
 
-button:hover:not(:disabled) {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+.partners-table th {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.partners-table td {
+    padding: 16px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Error and success messages */
-.message-box {
-    padding: 15px;
-    border-radius: 10px;
-    margin: 10px 0;
-    font-size: 0.95rem;
-    line-height: 1.4;
-}
-
-.error-message {
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid #ef4444;
-    color: #fca5a5;
-}
-
-.success-message {
-    background: rgba(16, 185, 129, 0.15);
-    border: 1px solid #10b981;
-    color: #6ee7b7;
-}
-
-/* Loading and disconnected states */
-.dashboard-loading,
-.dashboard-not-connected,
-.dashboard-error {
-    text-align: center;
-    color: white;
-    padding: 50px 20px;
+.partner-info {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    width: 100%;
 }
 
-.eco-bar {
-    display: flex;
-    height: 24px;
-    border-radius: 12px;
-    overflow: hidden;
-    margin: 15px 0;
-    background: #eee;
+.partner-name {
+    font-weight: 600;
+    color: #fff;
 }
-.eco-seg {
+
+.partner-desc {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.addr-col code {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: #818cf8;
+}
+
+.status-pill {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-pill.active {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+
+.status-pill.inactive {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.full-page-loader {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     justify-content: center;
-    font-size: 10px;
-    color: white;
-    font-weight: bold;
+    align-items: center;
+    height: 100vh;
+    background: #0f172a;
+    color: #6366f1;
 }
-.eco-user {
-    background: #4caf50;
+
+.error-badge {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
 }
-.eco-reserve {
-    background: #2196f3;
+.error-badge.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
 }
-.eco-burn {
-    background: #f44336;
+.error-badge.success {
+    background: rgba(34, 197, 94, 0.1);
+    color: #4ade80;
 }

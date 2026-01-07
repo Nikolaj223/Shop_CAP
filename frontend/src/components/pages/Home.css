@@ -1,0 +1,147 @@
+.home-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 20px;
+}
+
+.hero-section {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.hero-section h1 {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    margin-top: 40px;
+}
+
+.brand-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 24px;
+    padding: 30px;
+    text-align: center;
+    transition: 0.3s;
+}
+
+.brand-card:hover {
+    border-color: #3b82f6;
+    transform: translateY(-8px);
+}
+
+.brand-icon {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: 20px;
+}
+
+.cashback-badge {
+    display: inline-block;
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-weight: bold;
+    margin: 15px 0;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.btn-main {
+    padding: 14px 28px;
+    border-radius: 14px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-create {
+    background: #10b981;
+    color: white;
+}
+.btn-buy {
+    background: #3b82f6;
+    color: white;
+    width: 100%;
+}
+
+.brand-card.nft-style {
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-media {
+    background: #0f172a;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid #334155;
+}
+
+.card-content {
+    padding: 20px;
+    text-align: left;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.card-header h3 {
+    margin: 0;
+}
+
+.category-tag {
+    font-size: 0.7rem;
+    background: #334155;
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: #cbd5e1;
+    text-transform: uppercase;
+}
+
+.price-section {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    padding: 12px;
+    background: #0f172a;
+    border-radius: 12px;
+}
+
+.price-label {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-bottom: 4px;
+}
+
+.price-value {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #3b82f6;
+}
+
+.admin-panel {
+    border: 2px dashed #8b5cf6;
+    background: rgba(139, 92, 246, 0.05);
+    padding: 20px;
+    border-radius: 20px;
+    text-align: center;
+}

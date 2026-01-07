@@ -1,24 +1,30 @@
-// src/utils/contract-config.js
 import ShopCAPTokenABI from "../../contracts/abi/ShopCAPToken.json";
 import PartnerRegistryABI from "../../contracts/abi/PartnerRegistry.json";
 import CashbackManagerABI from "../../contracts/abi/CashbackManager.json";
 import ShopCAPPlatformABI from "../../contracts/abi/ShopCAPPlatform.json";
+
 export const contractAddresses = {
-    // Chain ID Sepolia
     11155111: {
-        shopCAPToken: "0x7269828f0337fB9C385Df80F9D4F9b53C3571D8F",
-        partnerRegistry: "0x5E148A6a1B7A6DCE6a4c8bFF4044A3d99E23b899",
-        cashbackManager: "0x603Ab4020eF47a48966736dcBBCef15212602085",
-        shopCAPPlatform: "0xB255fb6B1D48Cbf550a35737977FaD3c4ce7870e",
+        shopCAPToken: "0x16130D090F69D455068b8312040A1ACf4e8a49Ac",
+        partnerRegistry: "0x7e2A36a7cc01A236f4F945Ecbed3d69Bf2F47af2",
+        cashbackManager: "0xC9424D0CAdE319662E0722F58a8c82bCDB967FE7",
+        shopCAPPlatform: "0xe1b3c96Ae0153879417820ff7c973aE9f97AddDc",
     },
 };
 
 export const contractABIs = {
-    ShopCAPToken: ShopCAPTokenABI.abi,
-    PartnerRegistry: PartnerRegistryABI.abi,
-    CashbackManager: CashbackManagerABI.abi,
-    ShopCAPPlatform: ShopCAPPlatformABI.abi,
+    ShopCAPToken: ShopCAPTokenABI.abi || ShopCAPTokenABI,
+    PartnerRegistry: PartnerRegistryABI.abi || PartnerRegistryABI,
+    CashbackManager: CashbackManagerABI.abi || CashbackManagerABI,
+    ShopCAPPlatform: ShopCAPPlatformABI.abi || ShopCAPPlatformABI,
 };
 
-export const EXPECTED_CHAIN_ID = 11155111; // Sepolia Testnet
+export const EXPECTED_CHAIN_ID = 11155111;
 export const EXPECTED_CHAIN_NAME = "Sepolia";
+
+export default {
+    contractAddresses,
+    contractABIs,
+    EXPECTED_CHAIN_ID,
+    EXPECTED_CHAIN_NAME,
+};

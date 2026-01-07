@@ -165,178 +165,372 @@ function MyDashboard() {
             refId: userReferrerId,
         });
     };
-
-    if (authLoading) return <div className="loading">Loading wallet...</div>;
+    if (authLoading) {
+        return (
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "100vh",
+                    backgroundColor: "#0f172a",
+                    color: "#818cf8",
+                    fontFamily: "sans-serif",
+                }}
+            >
+                <div className="loading-content">
+                    <p style={{ fontSize: "1.2rem", letterSpacing: "1px" }}>
+                        Uploading asset data...
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="dashboard-container">
-            <h1>Platform Ecosystem Dashboard</h1>
+            {}
+            <header className="dashboard-header">
+                <h1>Platform Ecosystem</h1>
+                <p className="subtitle">
+                    SCAP asset management and partner status
+                </p>
+            </header>
 
-            {/* Balance block */}
-            <div className="scap-section card">
-                <h3>My SCAP Assets</h3>
-                <p className="balance-display">{scapBalance} SCAP</p>
-                <button
-                    onClick={handleMintTokens}
-                    disabled={isLoadingDashboard}
-                    className="mint-button"
-                >
-                    {isLoadingDashboard ? "Minting..." : "Mint Test 100 SCAP"}
-                </button>
-                {dashboardError && (
-                    <p className="error-text">{dashboardError}</p>
-                )}
-                {dashboardSuccessMessage && (
-                    <p className="success-text">{dashboardSuccessMessage}</p>
-                )}
-            </div>
-
-            {/* NEW BLOCK: Money Flow Simulation */}
-            <div className="simulation-section card">
-                <h3>Purchase Simulation (Cashback Flow)</h3>
-                <div className="sim-inputs">
-                    <select
-                        onChange={(e) => setSelectedPartnerId(e.target.value)}
-                        value={selectedPartnerId}
-                    >
-                        <option value="">Select Partner Shop...</option>
-                        {allPartners
-                            .filter((p) => p.isActive)
-                            .map((p) => (
-                                <option key={p.id} value={p.id}>
-                                    {p.name} (ID: {p.id})
-                                </option>
-                            ))}
-                    </select>
-                    <input
-                        type="number"
-                        value={purchaseAmount}
-                        onChange={(e) => setPurchaseAmount(e.target.value)}
-                        placeholder="Amount"
-                    />
-                    <button
-                        onClick={runPurchaseSimulation}
-                        className="calc-btn"
-                    >
-                        Calculate Flow
-                    </button>
-                </div>
-
-                {simulationResult && (
-                    <div className="flow-results">
-                        <p>
-                            Total Cashback Pool:{" "}
-                            <strong>
-                                {simulationResult.total.toFixed(2)} SCAP
-                            </strong>
-                        </p>
-                        <div className="flow-bar">
-                            <div
-                                className="bar-segment user"
-                                style={{
-                                    width: `${contractConfig.userShare}%`,
-                                }}
-                            >
-                                User: {simulationResult.user.toFixed(2)}
-                            </div>
-                            <div
-                                className="bar-segment reserve"
-                                style={{
-                                    width: `${contractConfig.reserveShare}%`,
-                                }}
-                            >
-                                Reserve: {simulationResult.reserve.toFixed(2)}
-                            </div>
-                            <div
-                                className="bar-segment burn"
-                                style={{
-                                    width: `${contractConfig.burnShare}%`,
-                                }}
-                            >
-                                Burn: {simulationResult.burn.toFixed(2)}
-                            </div>
-                        </div>
-                        {simulationResult.referrer > 0 && (
-                            <p className="ref-info">
-                                Referrer Bonus (ID {simulationResult.refId}): +
-                                {simulationResult.referrer.toFixed(2)} SCAP
-                                (deducted from User share)
-                            </p>
-                        )}
+            <div className="dashboard-content">
+                {/* BLOCK 1: SCAP Balance */}
+                <section className="glass-card">
+                    <h3>My SCAP Assets</h3>
+                    <div className="balance-box">
+                        <span className="balance-value">{scapBalance}</span>
+                        <span className="balance-label">SCAP</span>
                     </div>
-                )}
-            </div>
 
-            {/* Registration block */}
-            <div className="registration-section card">
-                <h3>Register New Business Partner</h3>
-                <form onSubmit={handleRegisterPartner} className="partner-form">
-                    <input
-                        placeholder="Name"
-                        value={partnerName}
-                        onChange={(e) => setPartnerName(e.target.value)}
-                        required
-                    />
-                    <input
-                        placeholder="Description"
-                        value={partnerDescription}
-                        onChange={(e) => setPartnerDescription(e.target.value)}
-                    />
-                    <input
-                        placeholder="Referral Link"
-                        value={referralLink}
-                        onChange={(e) => setReferralLink(e.target.value)}
-                    />
-                    <input
-                        placeholder="Wallet Address"
-                        value={partnerOwnerAddress}
-                        onChange={(e) => setPartnerOwnerAddress(e.target.value)}
-                        required
-                    />
-                    <button type="submit" disabled={isRegisteringPartner}>
-                        {isRegisteringPartner
+                    <button
+                        onClick={handleMintTokens}
+                        disabled={isLoadingDashboard}
+                        className="action-button mint"
+                    >
+                        {isLoadingDashboard
                             ? "Processing..."
-                            : "Register Partner"}
+                            : "Get 100 SCAP test scores"}
                     </button>
-                </form>
+
+                    {dashboardError && (
+                        <p className="msg error">{dashboardError}</p>
+                    )}
+                    {dashboardSuccessMessage && (
+                        <p className="msg success">{dashboardSuccessMessage}</p>
+                    )}
+                </section>
+
+                {/* BLOCK 2: Registration (Returned and styled block) */}
+                <section className="registration-section glass-card">
+                    <div className="card-header">
+                        <div className="icon-badge">🤝</div>
+                        <h3>Become a business partner</h3>
+                        <p className="description-text">
+                            Register a company to participate in the ecosystem
+                            of cashback
+                        </p>
+                    </div>
+
+                    <form
+                        onSubmit={handleRegisterPartner}
+                        className="partner-form"
+                    >
+                        <div className="input-group">
+                            <input
+                                type="text"
+                                className="modern-input"
+                                placeholder="Company name"
+                                value={partnerName}
+                                onChange={(e) => setPartnerName(e.target.value)}
+                                required
+                            />
+                        </div>
+
+                        <div className="input-group">
+                            <input
+                                type="text"
+                                className="modern-input"
+                                placeholder="Description of the activity"
+                                value={partnerDescription}
+                                onChange={(e) =>
+                                    setPartnerDescription(e.target.value)
+                                }
+                            />
+                        </div>
+
+                        <div className="input-group">
+                            <input
+                                type="text"
+                                className="modern-input"
+                                placeholder="Referral link or website"
+                                value={referralLink}
+                                onChange={(e) =>
+                                    setReferralLink(e.target.value)
+                                }
+                            />
+                        </div>
+
+                        <div className="input-group">
+                            <input
+                                type="text"
+                                className="modern-input wallet-input"
+                                placeholder="Wallet address (0x...)"
+                                value={partnerOwnerAddress}
+                                onChange={(e) =>
+                                    setPartnerOwnerAddress(e.target.value)
+                                }
+                                required
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            className={`submit-btn ${
+                                isRegisteringPartner ? "loading" : ""
+                            }`}
+                            disabled={isRegisteringPartner}
+                        >
+                            {isRegisteringPartner
+                                ? "Registration..."
+                                : "Register a partner"}
+                            <div className="btn-glow"></div>
+                        </button>
+                    </form>
+                </section>
+
+                {/* BLOCK 3: Partner Registry */}
+                <section className="glass-card table-card">
+                    <h3>Register of active partners</h3>
+                    {allPartners.length === 0 ? (
+                        <p className="empty-msg">
+                            There is no data in the registry yet.
+                        </p>
+                    ) : (
+                        <div className="table-wrapper">
+                            <table className="partners-table">
+                                <thead>
+                                    <tr>
+                                        <th>Partner</th>
+                                        <th>Wallet</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {allPartners.map((p) => (
+                                        <tr key={p.id}>
+                                            <td>
+                                                <div className="p-info">
+                                                    <span className="p-name">
+                                                        {p.name}
+                                                    </span>
+                                                    <span className="p-desc">
+                                                        {p.description}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="p-addr">
+                                                {`${p.partnerWallet.slice(
+                                                    0,
+                                                    6
+                                                )}...${p.partnerWallet.slice(
+                                                    -4
+                                                )}`}
+                                            </td>
+                                            <td>
+                                                <span
+                                                    className={`status-tag ${
+                                                        p.isActive
+                                                            ? "active"
+                                                            : "inactive"
+                                                    }`}
+                                                >
+                                                    {p.isActive
+                                                        ? "● Active"
+                                                        : "○ Inactive"}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </section>
             </div>
 
-            {/* Registry block */}
-            <div className="registry-section card">
-                <h3>Active Partners Directory</h3>
-                {allPartners.length === 0 ? (
-                    <p>No partners found.</p>
-                ) : (
-                    <table className="partners-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Partner</th>
-                                <th>Wallet</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {allPartners.map((p) => (
-                                <tr key={p.id}>
-                                    <td>{p.id}</td>
-                                    <td>
-                                        <strong>{p.name}</strong>
-                                        <br />
-                                        <small>{p.description}</small>
-                                    </td>
-                                    <td className="addr">{p.partnerWallet}</td>
-                                    <td>
-                                        {p.isActive
-                                            ? "✅ Active"
-                                            : "❌ Inactive"}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
-            </div>
+            <style jsx>{`
+                .dashboard-container {
+                    background: #0f172a;
+                    min-height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 60px 20px;
+                    font-family: "Inter", sans-serif;
+                    color: #f8fafc;
+                }
+
+                .dashboard-content {
+                    width: 100%;
+                    max-width: 600px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 25px;
+                }
+
+                .glass-card {
+                    background: rgba(30, 41, 59, 0.7);
+                    backdrop-filter: blur(12px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 20px;
+                    padding: 24px;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+                }
+
+                .card-header {
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+                .icon-badge {
+                    font-size: 2rem;
+                    margin-bottom: 10px;
+                }
+                .description-text {
+                    color: #94a3b8;
+                    font-size: 0.9rem;
+                    margin-bottom: 20px;
+                }
+
+                .partner-form {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 15px;
+                }
+
+                .modern-input {
+                    width: 100%;
+                    background: rgba(15, 23, 42, 0.6);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    padding: 12px 16px;
+                    border-radius: 10px;
+                    color: white;
+                    font-size: 0.95rem;
+                    outline: none;
+                    transition: border 0.3s;
+                    box-sizing: border-box;
+                }
+
+                .modern-input:focus {
+                    border-color: #6366f1;
+                }
+
+                .submit-btn {
+                    width: 100%;
+                    padding: 14px;
+                    background: linear-gradient(
+                        135deg,
+                        #6366f1 0%,
+                        #a855f7 100%
+                    );
+                    border: none;
+                    border-radius: 10px;
+                    color: white;
+                    font-weight: 600;
+                    cursor: pointer;
+                    position: relative;
+                    overflow: hidden;
+                    transition: transform 0.2s;
+                }
+
+                .submit-btn:hover {
+                    transform: translateY(-2px);
+                    opacity: 0.9;
+                }
+
+                .balance-box {
+                    background: rgba(0, 0, 0, 0.2);
+                    border-radius: 15px;
+                    padding: 20px;
+                    text-align: center;
+                    margin-bottom: 15px;
+                }
+                .balance-value {
+                    font-size: 2.2rem;
+                    font-weight: 800;
+                    color: #818cf8;
+                }
+                .balance-label {
+                    margin-left: 10px;
+                    color: #94a3b8;
+                }
+
+                .action-button.mint {
+                    width: 100%;
+                    padding: 12px;
+                    background: transparent;
+                    border: 1px solid #6366f1;
+                    color: #818cf8;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    font-weight: 500;
+                }
+
+                .table-wrapper {
+                    overflow-x: auto;
+                    margin-top: 15px;
+                }
+                .partners-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 0.9rem;
+                }
+                .partners-table th {
+                    text-align: left;
+                    padding: 12px;
+                    color: #64748b;
+                    border-bottom: 1px solid #334155;
+                }
+                .partners-table td {
+                    padding: 12px;
+                    border-bottom: 1px solid #1e293b;
+                }
+                .p-name {
+                    display: block;
+                    font-weight: 600;
+                    color: #f1f5f9;
+                }
+                .p-desc {
+                    font-size: 0.75rem;
+                    color: #64748b;
+                }
+                .p-addr {
+                    font-family: monospace;
+                    color: #818cf8;
+                }
+
+                .status-tag.active {
+                    color: #4ade80;
+                }
+                .status-tag.inactive {
+                    color: #f87171;
+                }
+
+                .msg {
+                    text-align: center;
+                    margin-top: 10px;
+                    font-size: 0.85rem;
+                }
+                .msg.error {
+                    color: #f87171;
+                }
+                .msg.success {
+                    color: #4ade80;
+                }
+            `}</style>
         </div>
     );
 }
