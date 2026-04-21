@@ -1,127 +1,168 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useWeb3Auth } from "../Auth/Web3AuthContext";
-import { getScapBalance } from "../../services/ShopService";
+import {
+    getDemoScapBalance,
+    getScapBalance,
+} from "../../services/ShopService";
+import {
+    formatAmount,
+    formatDateTime,
+    formatRubFromEth,
+} from "../../utils/locale";
+import { useEthRubRate } from "../../hooks/useEthRubRate";
 import "./UserDashboard.css";
 
 const UserDashboard = () => {
-    const { account, provider } = useWeb3Auth();
+    const {
+        account,
+        authType,
+        canUseBlockchain,
+        connectWallet,
+        currentUser,
+        isAuthenticated,
+        provider,
+        userKey,
+    } = useWeb3Auth();
+    const { ethRubRate } = useEthRubRate();
     const [purchasedItems, setPurchasedItems] = useState([]);
     const [scapBalance, setScapBalance] = useState("0");
     const [loading, setLoading] = useState(true);
 
-    const fetchBalance = async () => {
-        if (provider && account) {
-            try {
-                const balance = await getScapBalance(provider, account);
-                setScapBalance(balance);
-            } catch (err) {
-                console.error("Error when receiving the balance:", err);
-            }
-        }
-    };
-
-    const loadPurchasedItems = () => {
-        if (account) {
-            const storageKey = `purchases_${account.toLowerCase()}`;
-            const savedPurchases = localStorage.getItem(storageKey);
-            if (savedPurchases) {
-                setPurchasedItems(JSON.parse(savedPurchases));
-            } else {
-                setPurchasedItems([]);
-            }
-        }
-    };
+    const activeUserKey = (userKey || "guest").toLowerCase();
 
     useEffect(() => {
         const initDashboard = async () => {
             setLoading(true);
-            if (account) {
-                await fetchBalance();
-                loadPurchasedItems();
+
+            const storageKey = `purchases_${activeUserKey}`;
+            const savedPurchases = localStorage.getItem(storageKey);
+            setPurchasedItems(savedPurchases ? JSON.parse(savedPurchases) : []);
+
+            if (canUseBlockchain && provider && account) {
+                try {
+                    const balance = await getScapBalance(provider, account);
+                    setScapBalance(balance);
+                } catch (error) {
+                    console.error("Ошибка при получении баланса:", error);
+                    setScapBalance("0");
+                }
+            } else {
+                setScapBalance(getDemoScapBalance(activeUserKey));
             }
+
             setLoading(false);
         };
-        initDashboard();
-    }, [account, provider]);
 
-    if (loading)
-        return <div className="loading">Uploading profile data...</div>;
+        void initDashboard();
+    }, [account, activeUserKey, canUseBlockchain, provider]);
+
+    if (loading) {
+        return <div className="vault-loading">Загрузка профиля...</div>;
+    }
 
     return (
-        <div className="dashboard-container">
-            <div className="balance-card">
-                <div className="balance-info">
-                    <p>Your Token balance (Cashback)</p>
-                    <h1>{scapBalance} SCAP</h1>
-                    <small>Account:{account}</small>
+        <div className="vault-page">
+            <div className="vault-balance-card">
+                <div className="vault-balance-info">
+                    <p>Ваш баланс SCAP</p>
+                    <h1>
+                        {canUseBlockchain
+                            ? `${formatAmount(scapBalance)} SCAP`
+                            : `${formatAmount(scapBalance, 2)} SCAP demo`}
+                    </h1>
+                    <small>
+                        Режим:{" "}
+                        {canUseBlockchain
+                            ? authType === "hybrid"
+                                ? "логин + кошелек"
+                                : "кошелек"
+                            : isAuthenticated
+                              ? "обычная авторизация / demo"
+                              : "гостевой demo"}
+                    </small>
+                    <br />
+                    <small>
+                        Пользователь:{" "}
+                        {currentUser?.email ||
+                            currentUser?.walletAddress ||
+                            currentUser?.displayName ||
+                            "Гостевой demo-профиль"}
+                    </small>
+                    {!canUseBlockchain && (
+                        <>
+                            <br />
+                            <small>
+                                Баланс, покупки и кешбек сейчас считаются
+                                локально. Это удобно для показа проекта без
+                                MetaMask и без токенов.
+                            </small>
+                            <br />
+                            <button
+                                type="button"
+                                className="vault-inline-button"
+                                onClick={() => {
+                                    void connectWallet();
+                                }}
+                            >
+                                Подключить кошелек
+                            </button>
+                            {!isAuthenticated && (
+                                <Link
+                                    to="/auth"
+                                    className="vault-link-button secondary"
+                                >
+                                    Войти по email
+                                </Link>
+                            )}
+                        </>
+                    )}
                 </div>
-                {/* <button className="btn-refresh" onClick={fetchBalance}>
-                    🔄 Update
-                </button> */}
             </div>
 
-            <h2 style={{ margin: "30px 0 20px" }}>📦 My purchased items</h2>
+            <h2 className="vault-title">Мои покупки</h2>
 
             {purchasedItems.length === 0 ? (
-                <div className="empty-state">
+                <div className="vault-empty-state">
                     <p>
-                        You don't have any transaction history yet. Purchase the
-                        product on the main page.
+                        История покупок пока пуста. На странице маркетплейса
+                        можно оформить demo-покупку даже без MetaMask, и она
+                        сразу появится здесь.
                     </p>
                 </div>
             ) : (
-                <div className="market-grid">
+                <div className="vault-grid">
                     {purchasedItems.map((item, index) => (
-                        <div
-                            key={index}
-                            className="product-card purchased shadow-pulse"
-                        >
-                            <div className="status-badge">
-                                Cashback received
+                        <div key={index} className="vault-card">
+                            <div className="vault-status-badge">
+                                {item.mode === "demo"
+                                    ? "Demo кешбек начислен"
+                                    : "Кешбек начислен"}
                             </div>
-                            <div
-                                style={{
-                                    fontSize: "3.5rem",
-                                    marginBottom: "10px",
-                                }}
-                            >
-                                {item.img}
-                            </div>
+                            <div className="vault-purchase-badge">RM</div>
                             <h3>{item.name}</h3>
-                            <p style={{ color: "#94a3b8", fontSize: "0.8rem" }}>
-                                {item.purchaseDate}
+                            <p className="vault-date">
+                                {formatDateTime(item.purchaseDate)}
                             </p>
-                            <div
-                                style={{
-                                    marginTop: "15px",
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                <span
-                                    style={{
-                                        color: "#10b981",
-                                        fontSize: "1.2rem",
-                                    }}
-                                >
-                                    {item.price} ETH
+                            <div className="vault-price-block">
+                                <span className="vault-price-value">
+                                    {formatRubFromEth(item.price, ethRubRate)}
                                 </span>
                             </div>
+                            {item.rewardScap && (
+                                <div className="vault-price-note">
+                                    Начислено: {formatAmount(item.rewardScap, 2)}{" "}
+                                    SCAP demo
+                                </div>
+                            )}
                             {item.txHash && (
-                                <div
-                                    className="tx-link"
-                                    style={{ marginTop: "10px" }}
-                                >
+                                <div className="vault-tx-link">
                                     <a
                                         href={`https://sepolia.etherscan.io/tx/${item.txHash}`}
                                         target="_blank"
                                         rel="noreferrer"
-                                        style={{
-                                            color: "#6366f1",
-                                            fontSize: "0.7rem",
-                                            textDecoration: "underline",
-                                        }}
                                     >
-                                        View in Etherscan
+                                        Открыть в Etherscan
                                     </a>
                                 </div>
                             )}

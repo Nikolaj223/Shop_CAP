@@ -9,3 +9,6 @@ export const contractAddresses = {
 };
 export const EXPECTED_CHAIN_ID = "11155111";
 export const EXPECTED_CHAIN_NAME = "Sepolia";
+export const READ_ONLY_RPC_URL =
+    process.env.REACT_APP_SEPOLIA_RPC_URL ||
+    "https://ethereum-sepolia-rpc.publicnode.com";

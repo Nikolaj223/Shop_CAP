@@ -1,6 +1,19 @@
 {
     "name": "bnb",
     "version": "1.0.0",
+    "scripts": {
+        "users-api": "node server/userRegistryServer.js",
+        "chain": "npx hardhat node",
+        "compile": "npx hardhat compile",
+        "test:contracts": "npx hardhat test",
+        "test:frontend": "npm --prefix frontend test -- --watchAll=false",
+        "test:load": "node scripts/load-user-registry.js",
+        "test:all": "npm run test:contracts && npm run test:frontend",
+        "frontend:dev": "npm --prefix frontend start",
+        "frontend:build": "npm --prefix frontend build",
+        "deploy:local": "npx hardhat run scripts/deploy.ts --network localhost",
+        "deploy:sepolia": "npx hardhat run scripts/deploy.ts --network sepolia"
+    },
     "devDependencies": {
         "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
         "@nomicfoundation/hardhat-ethers": "^3.1.0",

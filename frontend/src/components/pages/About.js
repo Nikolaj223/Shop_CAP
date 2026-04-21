@@ -1,4 +1,3 @@
-// components/pages/About.js
 import React from "react";
 
 const About = () => {
@@ -6,80 +5,77 @@ const About = () => {
         <div className="about-page">
             <div className="about-container glass-effect">
                 <article className="prose">
-                    <h1>About ShopCAP</h1>
+                    <h1>О проекте ShopCAP</h1>
 
                     <section>
-                        <h2>What is ShopCAP?</h2>
+                        <h2>Что такое ShopCAP?</h2>
                         <p>
-                            ShopCAP is a next-generation decentralized cashback
-                            engine built on the ICM protocol. Our mission is to
-                            turn every-day consumer spending into a productive
-                            financial asset by returning value directly to the
-                            users.
+                            ShopCAP - это MVP маркетплейса с токенизированным
+                            кешбеком. Проект показывает, как покупки
+                            пользователя могут запускать on-chain логику и
+                            превращаться в прозрачное распределение ценности.
                         </p>
                     </section>
 
                     <section className="mechanism-box">
-                        <h2>How It Works</h2>
+                        <h2>Как это работает</h2>
                         <p>
-                            When you purchase products through our platform, the
-                            protocol automatically triggers a smart contract
-                            that calculates and distributes cashback in native
-                            SCAP tokens.
+                            После покупки товара через платформу смарт-контракт
+                            рассчитывает кешбек и распределяет токены
+                            <strong> SCAP</strong> между пользователем,
+                            резервом платформы и механизмом сжигания.
                         </p>
                         <div className="distribution-info">
-                            <h3>Token Distribution Model:</h3>
+                            <h3>Модель распределения:</h3>
                             <ul>
                                 <li>
-                                    <strong>70% User Rewards:</strong> Sent
-                                    directly to your wallet as cashback.
+                                    <strong>70% пользователю:</strong> кешбек
+                                    начисляется прямо на кошелек.
                                 </li>
                                 <li>
-                                    <strong>20% Protocol Reserve:</strong>{" "}
-                                    Ensures liquidity and future development.
+                                    <strong>20% резерву платформы:</strong>{" "}
+                                    часть награды сохраняется внутри
+                                    экосистемы.
                                 </li>
                                 <li>
-                                    <strong>10% Burn Mechanism:</strong>{" "}
-                                    Permanently removed from supply to maintain
-                                    deflationary pressure.
+                                    <strong>10% на сжигание:</strong> доля
+                                    награды отправляется на burn address.
                                 </li>
                             </ul>
                         </div>
                     </section>
 
                     <section className="example-card">
-                        <h2>Calculation Example</h2>
+                        <h2>Пример расчета</h2>
                         <div className="example-content">
                             <p>
-                                If you purchase an item worth{" "}
-                                <strong>1.00 ETH</strong>:
+                                Если пользователь совершает покупку на{" "}
+                                <strong>10 000 ₽</strong>:
                             </p>
                             <div className="math-row">
-                                <span className="label">
-                                    Total Cashback generated:
-                                </span>
-                                <span className="value">
-                                    0.1 ETH (approximate 10% rate)
-                                </span>
+                                <span className="label">Кешбек-пул:</span>
+                                <span className="value">100 ₽</span>
                             </div>
                             <hr />
                             <div className="math-row highlight">
                                 <span className="label">
-                                    You receive (70%):
+                                    Пользователь получает (70%):
                                 </span>
                                 <span className="value">
-                                    0.07 ETH in SCAP Tokens
+                                    70 ₽ в токенах SCAP
                                 </span>
                             </div>
                             <div className="math-row">
                                 <span className="label">
-                                    Protocol Reserve (20%):
+                                    Резерв платформы (20%):
                                 </span>
-                                <span className="value">0.02 ETH</span>
+                                <span className="value">20 ₽</span>
                             </div>
                             <div className="math-row">
-                                <span className="label">Token Burn (10%):</span>
-                                <span className="value">0.01 ETH</span>
+                                <span className="label">
+                                    Сжигание токенов (10%):
+                                </span>
+                                <span className="value">10 ₽</span>
                             </div>
                         </div>
                     </section>
@@ -91,6 +87,10 @@ const About = () => {
                     display: flex;
                     justify-content: center;
                     padding: 40px 20px;
+                    background:
+                        radial-gradient(circle at top right, rgba(217, 53, 53, 0.1), transparent 24%),
+                        radial-gradient(circle at top left, rgba(31, 95, 255, 0.16), transparent 28%),
+                        #08111f;
                     min-height: 80vh;
                 }
 
@@ -98,35 +98,37 @@ const About = () => {
                     max-width: 800px;
                     width: 100%;
                     padding: 40px;
-                    border-radius: 24px;
-                    background: rgba(30, 41, 59, 0.7);
-                    backdrop-filter: blur(12px);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 28px;
+                    background: rgba(13, 25, 43, 0.82);
+                    backdrop-filter: blur(14px);
+                    border: 1px solid rgba(177, 194, 220, 0.14);
                     color: #f8fafc;
+                    box-shadow: 0 24px 60px rgba(3, 10, 25, 0.32);
                 }
 
                 h1 {
                     text-align: center;
                     font-size: 2.5rem;
-                    color: #3b82f6;
+                    color: #f7f9fc;
                     margin-bottom: 30px;
                 }
 
                 h2 {
-                    color: #818cf8;
+                    color: #dce6f6;
                     margin-top: 25px;
                 }
 
                 p {
                     line-height: 1.6;
-                    color: #94a3b8;
+                    color: #9bb0d0;
                     font-size: 1.1rem;
                 }
 
                 .mechanism-box {
-                    background: rgba(15, 23, 42, 0.4);
+                    background: rgba(6, 14, 27, 0.72);
                     padding: 20px;
-                    border-radius: 15px;
+                    border-radius: 18px;
+                    border: 1px solid rgba(177, 194, 220, 0.1);
                     margin: 20px 0;
                 }
 
@@ -137,18 +139,19 @@ const About = () => {
 
                 .distribution-info li {
                     padding: 10px 0;
-                    border-bottom: 1px solid #334155;
+                    border-bottom: 1px solid rgba(177, 194, 220, 0.08);
                 }
 
                 .example-card {
                     margin-top: 40px;
-                    border: 1px solid #3b82f6;
+                    border: 1px solid rgba(177, 194, 220, 0.14);
                     padding: 25px;
-                    border-radius: 20px;
+                    border-radius: 22px;
                     background: linear-gradient(
                         145deg,
-                        rgba(30, 64, 175, 0.2),
-                        rgba(30, 41, 59, 0.5)
+                        rgba(31, 95, 255, 0.16),
+                        rgba(13, 25, 43, 0.84) 52%,
+                        rgba(217, 53, 53, 0.12)
                     );
                 }
 
@@ -166,8 +169,19 @@ const About = () => {
 
                 hr {
                     border: 0;
-                    border-top: 1px solid #334155;
+                    border-top: 1px solid rgba(177, 194, 220, 0.1);
                     margin: 15px 0;
+                }
+
+                @media (max-width: 760px) {
+                    .about-container {
+                        padding: 28px 22px;
+                    }
+
+                    .math-row {
+                        flex-direction: column;
+                        gap: 6px;
+                    }
                 }
             `}</style>
         </div>

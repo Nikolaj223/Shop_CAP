@@ -1,54 +1,205 @@
-.dashboard-container {
-    max-width: 1100px;
+.vault-page {
+    width: 100%;
+    max-width: 1280px;
     margin: 0 auto;
-    padding: 20px;
-    font-family: "Inter", sans-serif;
+    padding: 32px 20px 64px;
     color: #ffffff;
+    font-family: "Segoe UI", "Trebuchet MS", sans-serif;
 }
 
-.balance-card {
-    background: linear-gradient(135deg, #1e40af 0%, #312e81 100%);
-    border-radius: 24px;
-    padding: 40px;
-    margin-bottom: 30px;
+.vault-balance-card {
     position: relative;
     overflow: hidden;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    border-radius: 28px;
+    padding: 40px;
+    margin-bottom: 28px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent),
+        radial-gradient(circle at top right, rgba(217, 53, 53, 0.2), transparent 26%),
+        linear-gradient(135deg, #0f2443 0%, #123886 58%, #163367 78%, #8f1d2b 100%);
+    box-shadow: 0 26px 65px rgba(3, 10, 25, 0.35);
 }
 
-.balance-card::after {
+.vault-balance-card::after {
     content: "";
     position: absolute;
-    top: -50%;
-    right: -10%;
-    width: 300px;
-    height: 300px;
-    background: rgba(255, 255, 255, 0.1);
+    inset: auto auto -55px -45px;
+    width: 220px;
+    height: 220px;
     border-radius: 50%;
-    filter: blur(60px);
+    background: rgba(255, 255, 255, 0.08);
+    filter: blur(2px);
 }
 
-.market-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 25px;
+.vault-balance-info p {
+    margin: 0 0 12px;
+    color: #d7e3f7;
+    font-size: 1rem;
+}
+
+.vault-balance-info h1 {
+    margin: 0 0 8px;
+    font-size: clamp(2.6rem, 5vw, 4rem);
+    letter-spacing: -0.04em;
+}
+
+.vault-balance-info small {
+    color: rgba(247, 249, 252, 0.82);
+}
+
+.vault-title {
+    margin: 30px 0 20px;
+    text-align: center;
+    font-size: 2rem;
+    color: #f7f9fc;
+}
+
+.vault-loading,
+.vault-empty-state {
     width: 100%;
-    margin-top: 20px;
+    padding: 28px;
+    border-radius: 22px;
+    background: rgba(13, 25, 43, 0.82);
+    border: 1px solid rgba(177, 194, 220, 0.14);
+    color: #c8d3e7;
 }
 
-.product-card {
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 20px;
+.vault-empty-state h2 {
+    margin-top: 0;
+    color: #f7f9fc;
+}
+
+.vault-link-button,
+.vault-inline-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    min-height: 42px;
+    margin-top: 14px;
+    padding: 0 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(177, 194, 220, 0.14);
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.vault-link-button.secondary {
+    margin-left: 10px;
+}
+
+.vault-grid {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+    align-items: stretch;
+}
+
+.vault-card {
+    min-width: 0;
+    border-radius: 24px;
     padding: 24px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: all 0.3s ease;
+    background: rgba(12, 22, 39, 0.88);
+    border: 1px solid rgba(177, 194, 220, 0.12);
+    box-shadow: 0 20px 50px rgba(2, 8, 19, 0.24);
 }
 
-.product-card:hover {
-    transform: translateY(-8px);
-    border-color: #3b82f6;
-    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+.vault-card h3 {
+    margin: 0 0 8px;
+    color: #f7f9fc;
+    font-size: 1.15rem;
+    overflow-wrap: anywhere;
+}
+
+.vault-status-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    color: #eafff2;
+    background: rgba(79, 213, 143, 0.14);
+    border: 1px solid rgba(79, 213, 143, 0.32);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.vault-purchase-badge {
+    width: 72px;
+    height: 72px;
+    margin: 18px 0 10px;
+    border-radius: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #ffffff;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent),
+        linear-gradient(135deg, #1f5fff 0%, #1845bf 60%, #d93535 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 16px 28px rgba(12, 32, 74, 0.24);
+}
+
+.vault-date {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 0.8rem;
+}
+
+.vault-price-block {
+    margin-top: 15px;
+    font-weight: 700;
+}
+
+.vault-price-value {
+    color: #10b981;
+    font-size: 1.2rem;
+}
+
+.vault-price-note {
+    margin-top: 6px;
+    color: #9bb0d0;
+    font-size: 0.88rem;
+}
+
+.vault-tx-link {
+    margin-top: 10px;
+}
+
+.vault-tx-link a {
+    color: #8da8ff;
+    font-size: 0.78rem;
+    text-decoration: underline;
+}
+
+.vault-tx-link a:hover {
+    opacity: 0.85;
+}
+
+@media (max-width: 1024px) {
+    .vault-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .vault-page {
+        padding: 24px 14px 44px;
+    }
+
+    .vault-balance-card {
+        padding: 30px 22px;
+    }
+
+    .vault-grid {
+        grid-template-columns: 1fr;
+    }
 }

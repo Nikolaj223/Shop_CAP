@@ -1,208 +1,421 @@
-# ShopCAP — Consumer Cashback Engine on ICM
+# ShopCAP
 
-## 🚀 Project Overview
+ShopCAP is an MVP marketplace with tokenized cashback on Solidity.
 
-ShopCAP — Consumer Cashback Engine on ICM
+The project demonstrates:
+- partner management on-chain
+- marketplace item listing
+- simulated purchases through smart contracts
+- cashback distribution in `SCAP`
+- a React frontend with wallet connection, regular email/password auth, and a local JSON user registry
 
-Users earn tokens as cashback whenever they shop from integrated brands.
+## Stack
 
-Brands pay:
- • referral commissions
- • ad placements
- • feature fees
+- Smart contracts: Solidity, Hardhat, OpenZeppelin, Ethers v6
+- Frontend: React, React Router, Ethers v6
+- Local off-chain layer: Node.js JSON API for connected users
+- Testing:
+  - contract tests with Hardhat
+  - frontend smoke/user tests with React Testing Library
+  - load test for the local JSON API with a Node script
 
-Cashflow → routed into the token economy.
+## Repository Layout
 
-Token utility: upgrade cashback multipliers, vote on brand integrations.
-
-ICM benefit:
-Shopping becomes a revenue-generating financial marke
-
-This repository contains the full-stack infrastructure for the ShopCAP Platform, a decentralized cashback ecosystem built on the Ethereum Smart Chain. The project integrates a React-based dashboard with a robust suite of Solidity smart contracts to automate cashback distribution, partner management, and tokenomics.
-
-## ✨ Features
-
-*   **Automated Cashback Distribution:**  Smart contract logic for calculating and distributing rewards in native ShopCAP tokens (ERC-20) based on verified purchases.
-*   **Transparent Partner Registry:** A decentralized directory of verified partners, including descriptions, referral links, and owner addresses, managed directly on-chain.
-*   **Fixed Tokenomics Logic:** Automated revenue redistribution model: 70% allocated to user cashback, 20% to the platform reserve, and 10% dedicated to a deflationary burning mechanism.
-*   **Secure Architecture:** Built using OpenZeppelin’s industry-standard libraries to ensure secure token handling and access control (Ownable/ERC20).
-*   **Developer-Friendly Tooling:** Fully configured Hardhat environment for rapid deployment, testing, and contract verification.
-  
-
-## 🛠️ Technologies Used
-
-*   **Smart Contracts & Blockchain (Backend):**
-    *   Solidity: Smart contract programming language for Ethereum-compatible networks.
-    *   Hardhat: Professional development environment to compile, deploy, and test smart contracts.
-    *   Ethers.js (v6): A complete library for interacting with the Ethereum Blockchain and its ecosystem.
-    *   OpenZeppelin Contracts: Secure, community-vetted smart contract templates for ERC-20 and Access Control.
-    *   TypeScript: Used for writing robust deployment scripts and contract tests.
-*   **Frontend Interface:**
-    *   React (v19): For building a dynamic and responsive administrative and user dashboard.
-    *   React Router (v7): Handling navigation and routing within the application.
-    *   Ethers.js: Integrated on the frontend for browser-to-blockchain communication via MetaMask
-    *   CSS Variables & Glassmorphism: Custom UI styling using modern CSS techniques for a high-end, aesthetic look without heavy UI libraries.
-
-## 📂 Project Structure
-
-```
-.
-ShopCAP-project/          
-├── contracts/               
-│   ├── ShopCAPToken.sol 
-│   ├── PartnerRegistry.sol     
-│   ├── CashbackManager.sol
-    ├── ShopCAPPlatform.sol
-│   └── 
-│
-├── scripts/                 
-│   ├── deploy.js            
-│  
-├── test/                    
-├── frontend/                
-│   ├── public/              
-│   │   └── index.html
+```text
+backend/
+├── contracts/                  Solidity contracts
+├── scripts/                    Deploy and utility scripts
+├── test/                       Hardhat contract tests
+├── server/                     Local JSON API for connected users
+├── data/                       JSON storage for user registry
+├── frontend/                   React application
 │   ├── src/
-│   │   ├── components/      
-│   │   │   ├── Auth/
-│   │   │   ├── Dashboard
-│   │   │   ├── Utils/
-│          
-│   │   ├── services/       
-│   │   │   ├── web3Service.js  
-│   │   │   └── apiService.js    
-│   │   ├── contracts/abi/      
-│   │   │   ├──  ShopCAPToken.json 
-│   │   │   ├── PartnerRegistry.json
-│   │   │   ├── CashbackManager.json
-│   │   │   └──  ShopCAPPlatform.json
-│   │   │
-│   │   ├── App.js           
-│   │   ├── index.js        
-│   │   ├──
-│   │   └──
-│   │
-│   ├── 
-│   ├── package.json         
-│   └── ... (other React configuration files)
-│
-├── hardhat.config.js        
-├── package.json             
-├── .env                    
-├── README.md                
-└── ... 
-
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   └── utils/
+│   └── package.json
+├── hardhat.config.ts
+├── package.json
+└── README.md
 ```
 
-### **Root Directory (Blockchain & Config)**
-*   `contracts/`: Contains the Solidity smart contracts that power the decentralized logic.
-    *   `ShopCAPToken.sol`: The core ERC-20 token implementation for the platform rewards.
-    *   `PartnerRegistry.sol`: Management of authorized partners and their metadata.
-    *   `CashbackManager.sol`: Logic for processing purchases and calculating cashback distributions.
-    *   `ShopCAPPlatform.sol`: The master contract acting as the central entry point and coordinator.
-*   `scripts/`: Deployment and automation scripts.
-    *   `deploy.js`: Handles the orchestrated deployment of all contracts to the blockchain.
-*   `test/`: Suite of unit tests to ensure the security and reliability of the smart contracts.
-*   `hardhat.config.js`: Configuration for the Hardhat development environment, including network settings and compiler versions.
-*   `package.json`: Dependencies for the blockchain development environment (Hardhat, Ethers, OpenZeppelin).
-*   `.env`: Environment variables for sensitive data like Private Keys and RPC URLs.
+## Environment Variables
 
-  
-  ### **Frontend Directory (`/frontend/`)**
-The user interface is a React-based SPA (Single Page Application) that interacts directly with the blockchain.
-*   `public/`: Static assets such as the `index.html` entry point and manifest files.
-*   `src/components/`: Modular and reusable UI elements:
-    *   `Auth/`: Components for MetaMask connection and wallet authentication.
-    *   `Dashboard/`: The main user and partner interface for tracking balance and activities.
-    *   `Utils/`: Helper UI components like loaders, notifications, and modals.
-*   `src/services/`: Core logic for external interactions:
-    *   `web3Service.js`: Integration with `ethers.js` to communicate with the deployed smart contracts.
-    *   `apiService.js`: Logic for handling any external API calls or off-chain data.
-*   `src/contracts/abi/`: Contains the generated JSON ABIs. These files are essential for the frontend to understand and call the smart contract functions.
-*   `src/App.js`: The main application component that handles routing and global state management.
-*   `src/index.js`: The entry point for the React application that renders the DOM.
-*   `package.json`: Frontend-specific dependencies (React, React-Router-DOM, Ethers.js).
+### Root `.env`
 
-## ⚙️ Installation and Local Development
+Copy [`.env.example`](./.env.example) to `.env` and fill values:
 
-To get a local copy up and running, follow these simple steps.
+```env
+INFURA_ID=your_infura_project_id
+SEPOLIA_TESTNET_PRIVATE_KEY=your_wallet_private_key
+ETHERSCAN_API_KEY=your_etherscan_api_key
+USER_REGISTRY_PORT=3001
+```
 
-### Prerequisites
+### Frontend `.env`
 
-*   Node.js (LTS version recommended)
-*   npm or Yarn
+Copy [`frontend/.env.example`](./frontend/.env.example) to `frontend/.env`:
 
-### Installation
+```env
+REACT_APP_USER_REGISTRY_API_BASE=http://localhost:3001
+REACT_APP_COINGECKO_DEMO_API_KEY=
+REACT_APP_SEPOLIA_RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
+```
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/your-username/ShopCAP.git
-    cd frontend
-    ```
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    # or
-    yarn install
-    ```
-3.  **Start the development server:**
-    ```bash
-    npm start
-    # or
-    yarn start
-    ```
+`REACT_APP_COINGECKO_DEMO_API_KEY` is optional. If it is empty, the frontend still tries to fetch the public rate endpoint and falls back to cache/default rate when needed.
+`REACT_APP_SEPOLIA_RPC_URL` allows read-only Sepolia access, so the marketplace can render even without MetaMask.
 
-## 📦 Building for Production
+## Installation
 
-To build the application for production, run:
+### 1. Install backend dependencies
 
 ```bash
-npm run build
-# or
-yarn build
-```
-This command bundles the React application into static files in the `dist/` directory, ready for deployment.
-
-## 🚀 Deployment
-
-This project is configured for easy deployment with platforms like Vercel.
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/vercel/examples/tree/main/framework-boilerplates/vite-react&template=vite-react)
-
-_Live Example: https://shop-aq55co3d8-nikolaj223s-projects.vercel.app (Note: This link points to a generic Vite React example. Replace with your actual deployment link if available.)
-
-### Deploying From Your Terminal (Vercel CLI)
-
-You can deploy your new Vite project with a single command from your terminal using [Vercel CLI](https://vercel.com/download):
-
-```shell
-$ vercel
+cd backend
+npm install
 ```
 
-## 🤝 Contributing
+### 2. Install frontend dependencies
 
-We welcome contributions to the ShopCAP frontend! If you have suggestions for improvements, bug reports, or want to contribute code, please feel free to:
+```bash
+cd frontend
+npm install
+```
 
-1.  Fork the repository.
-2.  Create a new branch (`git checkout -b feature/YourFeature` or `bugfix/FixBug`).
-3.  Make your changes.
-4.  Commit your changes (`git commit -m 'feat: Add new feature'`).
-5.  Push to the branch (`git push origin feature/YourFeature`).
-6.  Open a Pull Request.
+## Quick Start Commands
 
-Please ensure your code adheres to the existing style and passes linting checks.
+Run all commands from:
 
-## 📄 License
+```bash
+cd backend
+```
 
-This project is licensed under the MIT License - see the `LICENSE` file for details (if applicable, otherwise specify your license or remove this section).
+### Project Run Commands
 
-## 📞 Contact
+```bash
+# start local JSON API for connected users
+npm run users-api
 
-For support, inquiries, or partnership opportunities, please contact us at:
+# start the React frontend on localhost:3000
+npm run frontend:dev
 
-*   **Email:** info@ShopCAP.com
-*   **Website:** [ShopCAP.com](https://ShopCAP.com) (placeholder)
-*   **GitHub:** [https://github.com/Nikolaj223/ShopCAP]) (placeholder)
+# start local Hardhat blockchain node
+npm run chain
 
----
-© 2025 ShopCAP Inc. All rights reserved.
+# deploy contracts to the local Hardhat node
+npm run deploy:local
+
+# create a production frontend build
+npm run frontend:build
+
+# deploy contracts to Sepolia
+npm run deploy:sepolia
+```
+
+What these commands give you:
+- `npm run users-api`
+  Starts the local backend API on `localhost:3001` for saving and reading connected users from `data/users.json`.
+- `npm run frontend:dev`
+  Starts the website in development mode on `localhost:3000`.
+- `npm run chain`
+  Launches a local Hardhat blockchain for local smart contract development and testing.
+- `npm run deploy:local`
+  Deploys the contracts into the local Hardhat node and generates frontend config/ABI files.
+- `npm run frontend:build`
+  Produces the production-ready static frontend build in `frontend/build`.
+- `npm run deploy:sepolia`
+  Deploys the contracts to the Sepolia testnet and prints verification commands.
+
+### Test Commands
+
+```bash
+# compile contracts
+npm run compile
+
+# run Hardhat smart contract tests
+npm run test:contracts
+
+# run React frontend tests
+npm run test:frontend
+
+# run load test for the local user registry API
+npm run test:load
+
+# run contract tests + frontend tests together
+npm run test:all
+```
+
+What these commands give you:
+- `npm run compile`
+  Checks that Solidity contracts compile successfully before deployment or testing.
+- `npm run test:contracts`
+  Runs automated smart contract tests from `backend/test`.
+- `npm run test:frontend`
+  Runs frontend smoke/user tests for UI behavior and rendering.
+- `npm run test:load`
+  Stress-tests the local JSON API with concurrent requests and prints latency metrics.
+- `npm run test:all`
+  Runs the main automated checks for contracts and frontend in one command.
+
+## Local Development
+
+### Option A. Frontend + local JSON user registry
+
+Run the local user registry API:
+
+```bash
+cd backend
+npm run users-api
+```
+
+In another terminal run the frontend:
+
+```bash
+cd backend
+npm run frontend:dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+### Option B. Full local blockchain flow
+
+Start a local Hardhat node:
+
+```bash
+cd backend
+npm run chain
+```
+
+Deploy contracts to the local node:
+
+```bash
+cd backend
+npm run deploy:local
+```
+
+Then run:
+
+```bash
+cd backend
+npm run users-api
+```
+
+And in another terminal:
+
+```bash
+cd backend
+npm run frontend:dev
+```
+
+## Contract Commands
+
+Compile contracts:
+
+```bash
+cd backend
+npm run compile
+```
+
+Run contract tests:
+
+```bash
+cd backend
+npm run test:contracts
+```
+
+## Frontend Tests
+
+Run automatic frontend smoke/user tests:
+
+```bash
+cd backend
+npm run test:frontend
+```
+
+Current frontend tests include:
+- marketplace rendering with ruble prices
+- user purchases rendering from local storage with ruble prices
+
+Relevant files:
+- [Home.test.js](./frontend/src/components/pages/Home.test.js)
+- [UserDashboard.test.js](./frontend/src/components/Dashboard/UserDashboard.test.js)
+
+## Load Testing
+
+Run the local JSON API first:
+
+```bash
+cd backend
+npm run users-api
+```
+
+Then in another terminal run the load test:
+
+```bash
+cd backend
+npm run test:load
+```
+
+The script sends concurrent `POST /api/users/upsert` requests and prints:
+- successful requests
+- failed requests
+- total wall time
+- average latency
+- P95 latency
+- P99 latency
+
+Load test variables:
+
+```bash
+LOAD_TEST_BASE_URL=http://localhost:3001
+LOAD_TEST_REQUESTS=100
+LOAD_TEST_CONCURRENCY=10
+```
+
+Implementation:
+- [load-user-registry.js](./scripts/load-user-registry.js)
+
+## Run All Available Automated Tests
+
+```bash
+cd backend
+npm run test:all
+```
+
+This runs:
+- contract tests
+- frontend tests
+
+## Sepolia Deployment
+
+Make sure root `.env` is configured first.
+
+Deploy to Sepolia:
+
+```bash
+cd backend
+npm run deploy:sepolia
+```
+
+What the deploy script does:
+- deploys `ShopCAPToken`
+- deploys `PartnerRegistry`
+- deploys `CashbackManager`
+- deploys `ShopCAPPlatform`
+- transfers `CashbackManager` ownership to `ShopCAPPlatform`
+- generates frontend contract config
+- copies ABI artifacts into the frontend
+- prints Etherscan verification commands
+
+Deploy script:
+- [deploy.ts](./scripts/deploy.ts)
+
+## Frontend Production Build
+
+Create a production build:
+
+```bash
+cd backend
+npm run frontend:build
+```
+
+The build output is generated inside:
+
+```text
+backend/frontend/build
+```
+
+## Website Deployment
+
+### Vercel
+
+The easiest way to deploy the React site is Vercel.
+
+Recommended flow:
+
+1. Push the repository to GitHub
+2. Import the `frontend` directory as a Vercel project
+3. Set environment variables in Vercel:
+   - `REACT_APP_USER_REGISTRY_API_BASE`
+   - `REACT_APP_COINGECKO_DEMO_API_KEY` if you use one
+   - `REACT_APP_SEPOLIA_RPC_URL`
+4. Build command:
+
+```text
+npm install && npm run build
+```
+
+5. Output directory:
+
+```text
+build
+```
+
+Important:
+- if you deploy only the frontend, the local JSON registry API will not exist in Vercel automatically
+- ordinary auth now falls back to browser storage when the local API is unavailable
+- for production you should still replace the local JSON registry with a hosted backend or database
+
+### Static Hosting
+
+You can also deploy `frontend/build` to any static hosting platform:
+- Vercel
+- Netlify
+- GitHub Pages
+- Nginx
+
+## Production Notes
+
+Current price display works like this:
+- item prices are shown to users in rubles
+- before writing to the contract, the frontend converts rubles to ETH
+- contract storage still keeps price in ETH
+
+This means:
+- the displayed ruble value can move with the live `ETH/RUB` rate
+- if you want strictly fixed ruble prices, you need separate ruble price storage off-chain or contract changes
+
+Current rate update model:
+- frontend polling with cached fallback
+- source: CoinGecko simple price endpoint
+- user-facing rate logic:
+  - [exchangeRateService.js](./frontend/src/services/exchangeRateService.js)
+  - [useEthRubRate.js](./frontend/src/hooks/useEthRubRate.js)
+
+## Useful Commands Summary
+
+```bash
+# local JSON API
+npm run users-api
+
+# local frontend
+npm run frontend:dev
+
+# hardhat node
+npm run chain
+
+# local deploy
+npm run deploy:local
+
+# sepolia deploy
+npm run deploy:sepolia
+
+# contract tests
+npm run test:contracts
+
+# frontend tests
+npm run test:frontend
+
+# load test
+npm run test:load
+
+# all automated tests
+npm run test:all
+
+# production frontend build
+npm run frontend:build
+```

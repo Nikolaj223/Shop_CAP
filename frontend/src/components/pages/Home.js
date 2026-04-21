@@ -1,130 +1,181 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useWeb3Auth } from "../Auth/Web3AuthContext";
 import {
-    fetchAllItems,
-    listItemInPlatform,
+    buyItemDemo,
     buyItemSimulated,
+    fetchAllItems,
+    listDemoItem,
+    listItemInPlatform,
 } from "../../services/ShopService";
+import {
+    convertRubToEth,
+    formatDateTime,
+    formatRub,
+    formatRubFromEth,
+} from "../../utils/locale";
+import { useEthRubRate } from "../../hooks/useEthRubRate";
 import "./Home.css";
 
 function Home() {
-    const { signer, provider } = useWeb3Auth();
+    const { isAuthenticated, signer, provider, userKey } = useWeb3Auth();
     const [isPending, setIsPending] = useState(false);
     const [showAdmin, setShowAdmin] = useState(false);
-
-    // State for storing items downloaded from the blockchain
     const [brands, setBrands] = useState([]);
-
-    // New state for the form (added partnerId)
+    const {
+        ethRubRate,
+        rateUpdatedAt,
+        rateSource,
+        isRateFallback,
+        isRateLoading,
+    } = useEthRubRate();
     const [newBrand, setNewBrand] = useState({
         name: "",
-        category: "General",
-        price: "0.01",
-        emoji: "📦",
+        priceRub: "2500",
         partnerId: "0",
     });
-    /**
-     * Loading products from a smart contract
-     */
-    const loadBlockchainData = async () => {
-        if (!provider) return;
+
+    const activeUserKey = userKey || "guest";
+    const isDemoMode = !signer;
+
+    const loadMarketplaceData = useCallback(async () => {
         try {
-            // Use the service to get a list of all products on the platform
             const items = await fetchAllItems(provider);
-
-            // Mapping the contract data to the design of our cards
-            const formattedItems = items.map((item) => ({
-                id: item.id,
-                name: item.name,
-                cat: "Blockchain Item",
-                price: item.price,
-                priceRaw: item.priceRaw,
-                partnerId: item.partnerId,
-                img: "💎",
-                isActive: item.isActive,
-            }));
-
-            setBrands(formattedItems.filter((i) => i.isActive));
-        } catch (err) {
-            console.error("Error loading products:", err);
+            setBrands(items.filter((item) => item.isActive));
+        } catch (error) {
+            console.error("Ошибка загрузки товаров:", error);
         }
-    };
-
-    useEffect(() => {
-        loadBlockchainData();
     }, [provider]);
 
-    /**
-     * Creating a new product on the platform
-     */
-    const handleAddAndMint = async (e) => {
-        e.preventDefault();
-        if (!signer) return alert("Connect the wallet!");
+    useEffect(() => {
+        void loadMarketplaceData();
+    }, [loadMarketplaceData]);
 
-        setIsPending(true);
-        try {
-            await listItemInPlatform(
-                signer,
-                newBrand.name,
-                newBrand.price,
-                100,
-                newBrand.partnerId
+    const buildPriceInEth = () => {
+        const normalizedRubValue = newBrand.priceRub
+            .toString()
+            .replace(/\s/g, "")
+            .replace(",", ".");
+        const priceInEth = convertRubToEth(normalizedRubValue, ethRubRate);
+
+        if (priceInEth === null || priceInEth <= 0) {
+            throw new Error(
+                "Не удалось рассчитать цену товара по текущему курсу."
             );
+        }
 
-            alert("The product was successfully created in the blockchain!");
+        return {
+            normalizedRubValue,
+            priceInEth,
+        };
+    };
+
+    const handleAddAndMint = async (event) => {
+        event.preventDefault();
+        setIsPending(true);
+
+        try {
+            const { normalizedRubValue, priceInEth } = buildPriceInEth();
+
+            if (signer) {
+                await listItemInPlatform(
+                    signer,
+                    newBrand.name,
+                    priceInEth.toFixed(8),
+                    100,
+                    newBrand.partnerId
+                );
+
+                alert("Товар успешно добавлен в блокчейн.");
+            } else {
+                await listDemoItem({
+                    name: newBrand.name,
+                    partnerId: newBrand.partnerId,
+                    priceEth: priceInEth.toFixed(8),
+                    priceRub: normalizedRubValue,
+                    stock: 100,
+                });
+
+                alert(
+                    "Товар добавлен в demo-режиме. Он сохранен локально и доступен для демонстрации без MetaMask."
+                );
+            }
+
             setNewBrand({
                 name: "",
-                category: "General",
-                price: "0.01",
-                emoji: "📦",
+                priceRub: "2500",
                 partnerId: "0",
             });
             setShowAdmin(false);
-
-            await loadBlockchainData();
-        } catch (err) {
-            console.error(err);
-            alert("Creation error: " + (err.reason || err.message));
+            await loadMarketplaceData();
+        } catch (error) {
+            console.error(error);
+            alert(
+                `Ошибка создания товара: ${
+                    error.reason || error.message || String(error)
+                }`
+            );
         } finally {
             setIsPending(false);
         }
     };
 
     const handleBuy = async (brand) => {
-        if (!signer) return alert("Connect your wallet!");
-
         setIsPending(true);
+
         try {
-            const result = await buyItemSimulated(signer, brand);
+            if (signer) {
+                const result = await buyItemSimulated(signer, brand);
+
+                if (result.success) {
+                    const userAddress = await signer.getAddress();
+                    const storageKey = `purchases_${userAddress.toLowerCase()}`;
+                    const currentPurchasedRaw = localStorage.getItem(storageKey);
+                    const currentPurchases = currentPurchasedRaw
+                        ? JSON.parse(currentPurchasedRaw)
+                        : [];
+
+                    const newPurchase = {
+                        ...brand,
+                        txHash: result.hash,
+                        purchaseDate: new Date().toISOString(),
+                        status: "Кешбек начислен",
+                        mode: "blockchain",
+                    };
+
+                    localStorage.setItem(
+                        storageKey,
+                        JSON.stringify([...currentPurchases, newPurchase])
+                    );
+
+                    alert(
+                        `Покупка обработана успешно. Кешбек начислен на ваш кошелек. Сумма покупки: ${formatRubFromEth(
+                            brand.price,
+                            ethRubRate
+                        )}.`
+                    );
+                }
+
+                return;
+            }
+
+            const result = await buyItemDemo({
+                item: brand,
+                userKey: activeUserKey,
+                ethRubRate,
+            });
 
             if (result.success) {
-                const userAddress = await signer.getAddress();
-
-                const storageKey = `purchases_${userAddress.toLowerCase()}`;
-                const currentPurchasedRaw = localStorage.getItem(storageKey);
-                const currentPurchases = currentPurchasedRaw
-                    ? JSON.parse(currentPurchasedRaw)
-                    : [];
-
-                const newPurchase = {
-                    ...brand,
-                    txHash: result.hash,
-                    purchaseDate: new Date().toLocaleString(),
-                    status: "Cashback Received",
-                };
-
-                localStorage.setItem(
-                    storageKey,
-                    JSON.stringify([...currentPurchases, newPurchase])
-                );
-
                 alert(
-                    `Success! The cashback has been credited to your wallet. Purchase amount: ${brand.price} ETH`
+                    `Demo-покупка сохранена локально. Начислено ${result.rewardScap} SCAP demo. Этот режим подходит для показа проекта без MetaMask и без токенов.`
                 );
             }
         } catch (error) {
-            console.error("Purchase error:", error);
-            alert(error.reason || error.message || "Transaction error");
+            console.error("Ошибка покупки:", error);
+            alert(
+                error.reason ||
+                    error.message ||
+                    "Ошибка транзакции при покупке товара."
+            );
         } finally {
             setIsPending(false);
         }
@@ -133,56 +184,97 @@ function Home() {
     return (
         <div className="home-page">
             <header className="hero-section">
-                <h1>Web3 Cashback Marketplace</h1>
-                <p>Buy products and receive ShopCAP tokens instantly</p>
+                <span className="hero-kicker">Локализованный MVP</span>
+                <h1>Маркетплейс с токенизированным кешбеком</h1>
+                <p>
+                    Покупайте товары и получайте кешбек в токенах SCAP
+                    <span className="hero-inline-note">
+                        {" "}
+                        (on-chain тикер: SCAP)
+                    </span>
+                </p>
+                <div className="hero-note">
+                    Для пользователя цены на витрине показываются в рублях, а
+                    нужный on-chain эквивалент рассчитывается автоматически по
+                    текущему курсу ETH/RUB.
+                </div>
+                {!isAuthenticated && (
+                    <div className="hero-note">
+                        Даже без входа можно показать базовый сценарий как
+                        гость. Если хотите персональный кабинет и отдельную
+                        историю, используйте обычный вход по email и паролю.
+                    </div>
+                )}
+                <div className="rate-box">
+                    <div className="rate-box-header">
+                        <strong>Текущий курс ETH/RUB</strong>
+                        <span>{isRateLoading ? "Обновление..." : rateSource}</span>
+                    </div>
+                    <div className="rate-box-value">
+                        1 ETH = {formatRub(ethRubRate)}
+                    </div>
+                    <div className="rate-box-note">
+                        {rateUpdatedAt
+                            ? `Обновлено: ${formatDateTime(
+                                  new Date(rateUpdatedAt * 1000)
+                              )}`
+                            : "Время обновления пока недоступно."}
+                        {isRateFallback
+                            ? " Используется сохраненный или резервный курс."
+                            : ""}
+                    </div>
+                </div>
                 <button
                     onClick={() => setShowAdmin(!showAdmin)}
                     className="btn-main"
                 >
-                    {showAdmin ? "Close the panel" : "Add your product"}
+                    {showAdmin ? "Закрыть панель" : "Добавить товар"}
                 </button>
             </header>
 
             {showAdmin && (
                 <div className="admin-panel">
-                    <h3>Create a product on the Platform</h3>
-                    <form
-                        onSubmit={handleAddAndMint}
-                        className="add-brand-form"
-                    >
+                    <h3>Добавление товара на платформу</h3>
+                    <p className="admin-panel-note">
+                        Цена вводится в рублях, а перед записью в блокчейн
+                        автоматически конвертируется в ETH по текущему курсу.
+                        {isDemoMode
+                            ? " Сейчас товар сохранится только локально в demo-режиме."
+                            : " Сейчас товар будет записан on-chain."}
+                    </p>
+                    <form onSubmit={handleAddAndMint} className="add-brand-form">
                         <input
                             type="text"
-                            placeholder="Product Name"
+                            placeholder="Название товара"
                             value={newBrand.name}
-                            onChange={(e) =>
+                            onChange={(event) =>
                                 setNewBrand({
                                     ...newBrand,
-                                    name: e.target.value,
+                                    name: event.target.value,
+                                })
+                            }
+                            required
+                        />
+                        <input
+                            type="text"
+                            placeholder="Цена товара в рублях"
+                            value={newBrand.priceRub}
+                            onChange={(event) =>
+                                setNewBrand({
+                                    ...newBrand,
+                                    priceRub: event.target.value,
                                 })
                             }
                             required
                         />
                         <input
                             type="number"
-                            step="0.0001"
-                            placeholder="Price in ETH (for calculating cashback)"
-                            value={newBrand.price}
-                            onChange={(e) =>
-                                setNewBrand({
-                                    ...newBrand,
-                                    price: e.target.value,
-                                })
-                            }
-                            required
-                        />
-                        <input
-                            type="number"
-                            placeholder="Partner's ID (0 if not)"
+                            placeholder="ID партнера (0 если без партнера)"
                             value={newBrand.partnerId}
-                            onChange={(e) =>
+                            onChange={(event) =>
                                 setNewBrand({
                                     ...newBrand,
-                                    partnerId: e.target.value,
+                                    partnerId: event.target.value,
                                 })
                             }
                         />
@@ -191,7 +283,11 @@ function Home() {
                             className="btn-main btn-create"
                             disabled={isPending}
                         >
-                            {isPending ? "Create..." : "Write to Blockchain"}
+                            {isPending
+                                ? "Сохранение..."
+                                : isDemoMode
+                                  ? "Сохранить demo-товар"
+                                  : "Записать в блокчейн"}
                         </button>
                     </form>
                 </div>
@@ -208,15 +304,21 @@ function Home() {
                                 <div className="card-header">
                                     <h3>{brand.name}</h3>
                                     <span className="category-tag">
-                                        {brand.cat}
+                                        {brand.categoryLabel ||
+                                            (brand.isDemo
+                                                ? "Demo local"
+                                                : "Демо-товар")}
                                     </span>
                                 </div>
                                 <div className="price-section">
                                     <div className="price-label">
-                                        Virtual price
+                                        Цена товара
                                     </div>
                                     <div className="price-value">
-                                        {brand.price} ETH
+                                        {formatRubFromEth(
+                                            brand.price,
+                                            ethRubRate
+                                        )}
                                     </div>
                                 </div>
                                 <button
@@ -224,14 +326,19 @@ function Home() {
                                     onClick={() => handleBuy(brand)}
                                     disabled={isPending}
                                 >
-                                    {isPending ? "Processing..." : "Buy"}
+                                    {isPending
+                                        ? "Обработка..."
+                                        : signer
+                                          ? "Купить"
+                                          : "Купить в demo"}
                                 </button>
                             </div>
                         </div>
                     ))
                 ) : (
                     <p className="no-items">
-                        No products found. Create the first product
+                        Товары пока не добавлены. Создайте первый товар для
+                        витрины.
                     </p>
                 )}
             </div>

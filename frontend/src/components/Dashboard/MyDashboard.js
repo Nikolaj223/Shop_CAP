@@ -7,33 +7,33 @@ import {
     getCashbackManagerContract,
     getAllPartners,
 } from "../../services/contractServices";
+import { fetchRegisteredUsers } from "../../services/userRegistryService";
+import { formatAmount, formatDateTime, formatWallet } from "../../utils/locale";
 import { useWeb3Auth } from "../Auth/Web3AuthContext";
 import "./MyDashboard.css";
 
 function MyDashboard() {
-    const { account, provider, signer, loading: authLoading } = useWeb3Auth();
+    const {
+        account,
+        canUseBlockchain,
+        provider,
+        signer,
+        loading: authLoading,
+    } = useWeb3Auth();
 
-    // --- Token states and general statuses ---
     const [scapBalance, setScapBalance] = useState("0");
     const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
     const [dashboardError, setDashboardError] = useState(null);
     const [dashboardSuccessMessage, setDashboardSuccessMessage] =
         useState(null);
 
-    // --- States for partner registration ---
     const [partnerName, setPartnerName] = useState("");
     const [partnerDescription, setPartnerDescription] = useState("");
     const [referralLink, setReferralLink] = useState("");
     const [partnerOwnerAddress, setPartnerOwnerAddress] = useState("");
     const [isRegisteringPartner, setIsRegisteringPartner] = useState(false);
 
-    // --- States for simulation of purchases and Money Flow ---
-    const [selectedPartnerId, setSelectedPartnerId] = useState("");
-    const [purchaseAmount, setPurchaseAmount] = useState(1000);
-    const [simulationResult, setSimulationResult] = useState(null);
     const [userReferrerId, setUserReferrerId] = useState(0);
-
-    // Distribution parameters (from CashbackManager)
     const [contractConfig, setContractConfig] = useState({
         basePercent: 1,
         userShare: 70,
@@ -42,29 +42,32 @@ function MyDashboard() {
         referrerBonus: 0,
     });
 
-    // --- Status of the list of all partners ---
     const [allPartners, setAllPartners] = useState([]);
+    const [registeredUsers, setRegisteredUsers] = useState([]);
 
-    /**
-     * Loading the SCAP balance
-     */
     const fetchScapBalance = useCallback(async () => {
-        if (account && provider) {
-            try {
-                const balance = await getShopCAPBalance(provider, account);
-                setScapBalance(balance);
-            } catch (err) {
-                console.error("Error fetching SCAP balance:", err);
-            }
+        if (!account || !provider) {
+            return;
+        }
+
+        try {
+            const balance = await getShopCAPBalance(provider, account);
+            setScapBalance(balance);
+        } catch (err) {
+            console.error("Ошибка получения баланса SCAP:", err);
         }
     }, [account, provider]);
 
     const fetchData = useCallback(async () => {
-        if (!provider) return;
+        if (!provider) {
+            return;
+        }
+
         try {
             const registryContract = await getPartnerRegistryContract(provider);
             const list = await getAllPartners(registryContract);
             setAllPartners(list);
+
             const manager = await getCashbackManagerContract(provider);
             const [base, uShare, rShare, bShare, refBonus] = await Promise.all([
                 manager.cashbackBasePercent(),
@@ -87,7 +90,15 @@ function MyDashboard() {
                 setUserReferrerId(Number(refId));
             }
         } catch (err) {
-            console.error("Error fetching data from contracts:", err);
+            console.error("Ошибка загрузки данных из контрактов:", err);
+        }
+
+        try {
+            const savedUsers = await fetchRegisteredUsers();
+            setRegisteredUsers(savedUsers);
+        } catch (registryError) {
+            console.warn("API реестра пользователей недоступен:", registryError);
+            setRegisteredUsers([]);
         }
     }, [account, provider]);
 
@@ -99,23 +110,41 @@ function MyDashboard() {
     }, [account, provider, fetchScapBalance, fetchData]);
 
     const handleMintTokens = async () => {
-        if (!signer) return;
+        if (!signer) {
+            setDashboardError(
+                "Для минта тестовых токенов нужен подключенный кошелек."
+            );
+            return;
+        }
+
         setIsLoadingDashboard(true);
         setDashboardError(null);
+
         try {
             await mintTokens(signer, account, "100");
-            setDashboardSuccessMessage("100 SCAP minted successfully!");
+            setDashboardSuccessMessage(
+                "100 тестовых токенов SCAP успешно начислены."
+            );
             await fetchScapBalance();
         } catch (err) {
-            setDashboardError(`Minting error: ${err.reason || err.message}`);
+            setDashboardError(
+                `Ошибка минта: ${err.reason || err.message || err}`
+            );
         } finally {
             setIsLoadingDashboard(false);
         }
     };
+
     const handleRegisterPartner = async (e) => {
         e.preventDefault();
-        if (!signer) return;
+
+        if (!signer) {
+            alert("Для регистрации партнера нужен подключенный кошелек.");
+            return;
+        }
+
         setIsRegisteringPartner(true);
+
         try {
             const tx = await addPartner(
                 signer,
@@ -124,47 +153,23 @@ function MyDashboard() {
                 referralLink,
                 partnerOwnerAddress
             );
+
             await tx.wait();
+
             setPartnerName("");
             setPartnerDescription("");
             setReferralLink("");
             setPartnerOwnerAddress("");
+
             await fetchData();
-            alert("Partner registered successfully!");
+            alert("Партнер успешно зарегистрирован.");
         } catch (err) {
-            alert(`Error: ${err.reason || err.message}`);
+            alert(`Ошибка: ${err.reason || err.message}`);
         } finally {
             setIsRegisteringPartner(false);
         }
     };
 
-    const runPurchaseSimulation = () => {
-        if (!selectedPartnerId) return alert("Select a partner");
-
-        // CashbackManager.issueCashbackAndDistribute()
-        const totalCashback =
-            (purchaseAmount * contractConfig.basePercent) / 100;
-
-        let userAmount = (totalCashback * contractConfig.userShare) / 100;
-        const reserveAmount =
-            (totalCashback * contractConfig.reserveShare) / 100;
-        const burnAmount = (totalCashback * contractConfig.burnShare) / 100;
-
-        let referrerAmount = 0;
-        if (contractConfig.referrerBonus > 0 && userReferrerId !== 0) {
-            referrerAmount = (userAmount * contractConfig.referrerBonus) / 100;
-            userAmount = userAmount - referrerAmount;
-        }
-
-        setSimulationResult({
-            total: totalCashback,
-            user: userAmount,
-            reserve: reserveAmount,
-            burn: burnAmount,
-            referrer: referrerAmount,
-            refId: userReferrerId,
-        });
-    };
     if (authLoading) {
         return (
             <div
@@ -180,7 +185,7 @@ function MyDashboard() {
             >
                 <div className="loading-content">
                     <p style={{ fontSize: "1.2rem", letterSpacing: "1px" }}>
-                        Uploading asset data...
+                        Загрузка данных платформы...
                     </p>
                 </div>
             </div>
@@ -189,22 +194,35 @@ function MyDashboard() {
 
     return (
         <div className="dashboard-container">
-            {}
             <header className="dashboard-header">
-                <h1>Platform Ecosystem</h1>
+                <h1>Панель платформы</h1>
                 <p className="subtitle">
-                    SCAP asset management and partner status
+                    SCAP, партнеры и локальная база пользователей
                 </p>
             </header>
 
             <div className="dashboard-content">
-                {/* BLOCK 1: SCAP Balance */}
                 <section className="glass-card">
-                    <h3>My SCAP Assets</h3>
+                    <h3>Баланс SCAP</h3>
                     <div className="balance-box">
-                        <span className="balance-value">{scapBalance}</span>
-                        <span className="balance-label">SCAP</span>
+                        <span className="balance-value">
+                            {formatAmount(scapBalance)}
+                        </span>
+                        <span className="balance-label">SCAP • on-chain</span>
                     </div>
+                    <p className="description-text">
+                        Токен платформы отображается как <code>SCAP</code> и
+                        используется в начислении кешбека и внутренних
+                        reward-сценариях.
+                    </p>
+
+                    {!canUseBlockchain && (
+                        <p className="description-text">
+                            Панель открыта в read-only режиме. Просмотр данных
+                            доступен без MetaMask, но admin-only действия
+                            требуют подключенный кошелек.
+                        </p>
+                    )}
 
                     <button
                         onClick={handleMintTokens}
@@ -212,8 +230,8 @@ function MyDashboard() {
                         className="action-button mint"
                     >
                         {isLoadingDashboard
-                            ? "Processing..."
-                            : "Get 100 SCAP test scores"}
+                            ? "Обработка..."
+                            : "Получить 100 тестовых токенов SCAP"}
                     </button>
 
                     {dashboardError && (
@@ -224,15 +242,16 @@ function MyDashboard() {
                     )}
                 </section>
 
-                {/* BLOCK 2: Registration (Returned and styled block) */}
                 <section className="registration-section glass-card">
                     <div className="card-header">
-                        <div className="icon-badge">🤝</div>
-                        <h3>Become a business partner</h3>
-                        <p className="description-text">
-                            Register a company to participate in the ecosystem
-                            of cashback
-                        </p>
+                        <div className="icon-badge">BP</div>
+                        <div>
+                            <h3>Регистрация бизнес-партнера</h3>
+                            <p className="description-text">
+                                Зарегистрируйте компанию для участия в
+                                экосистеме кешбека
+                            </p>
+                        </div>
                     </div>
 
                     <form
@@ -243,7 +262,7 @@ function MyDashboard() {
                             <input
                                 type="text"
                                 className="modern-input"
-                                placeholder="Company name"
+                                placeholder="Название компании"
                                 value={partnerName}
                                 onChange={(e) => setPartnerName(e.target.value)}
                                 required
@@ -254,7 +273,7 @@ function MyDashboard() {
                             <input
                                 type="text"
                                 className="modern-input"
-                                placeholder="Description of the activity"
+                                placeholder="Описание деятельности"
                                 value={partnerDescription}
                                 onChange={(e) =>
                                     setPartnerDescription(e.target.value)
@@ -266,7 +285,7 @@ function MyDashboard() {
                             <input
                                 type="text"
                                 className="modern-input"
-                                placeholder="Referral link or website"
+                                placeholder="Реферальная ссылка или сайт"
                                 value={referralLink}
                                 onChange={(e) =>
                                     setReferralLink(e.target.value)
@@ -278,7 +297,7 @@ function MyDashboard() {
                             <input
                                 type="text"
                                 className="modern-input wallet-input"
-                                placeholder="Wallet address (0x...)"
+                                placeholder="Адрес кошелька (0x...)"
                                 value={partnerOwnerAddress}
                                 onChange={(e) =>
                                     setPartnerOwnerAddress(e.target.value)
@@ -295,62 +314,56 @@ function MyDashboard() {
                             disabled={isRegisteringPartner}
                         >
                             {isRegisteringPartner
-                                ? "Registration..."
-                                : "Register a partner"}
+                                ? "Регистрация..."
+                                : "Зарегистрировать партнера"}
                             <div className="btn-glow"></div>
                         </button>
                     </form>
                 </section>
 
-                {/* BLOCK 3: Partner Registry */}
                 <section className="glass-card table-card">
-                    <h3>Register of active partners</h3>
+                    <h3>Реестр активных партнеров</h3>
                     {allPartners.length === 0 ? (
-                        <p className="empty-msg">
-                            There is no data in the registry yet.
-                        </p>
+                        <p className="empty-msg">В реестре пока нет данных.</p>
                     ) : (
                         <div className="table-wrapper">
                             <table className="partners-table">
                                 <thead>
                                     <tr>
-                                        <th>Partner</th>
-                                        <th>Wallet</th>
-                                        <th>Status</th>
+                                        <th>Партнер</th>
+                                        <th>Кошелек</th>
+                                        <th>Статус</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {allPartners.map((p) => (
-                                        <tr key={p.id}>
+                                    {allPartners.map((partner) => (
+                                        <tr key={partner.id}>
                                             <td>
                                                 <div className="p-info">
                                                     <span className="p-name">
-                                                        {p.name}
+                                                        {partner.name}
                                                     </span>
                                                     <span className="p-desc">
-                                                        {p.description}
+                                                        {partner.description}
                                                     </span>
                                                 </div>
                                             </td>
                                             <td className="p-addr">
-                                                {`${p.partnerWallet.slice(
-                                                    0,
-                                                    6
-                                                )}...${p.partnerWallet.slice(
-                                                    -4
-                                                )}`}
+                                                {formatWallet(
+                                                    partner.partnerWallet
+                                                )}
                                             </td>
                                             <td>
                                                 <span
                                                     className={`status-tag ${
-                                                        p.isActive
+                                                        partner.isActive
                                                             ? "active"
                                                             : "inactive"
                                                     }`}
                                                 >
-                                                    {p.isActive
-                                                        ? "● Active"
-                                                        : "○ Inactive"}
+                                                    {partner.isActive
+                                                        ? "Активен"
+                                                        : "Неактивен"}
                                                 </span>
                                             </td>
                                         </tr>
@@ -360,17 +373,79 @@ function MyDashboard() {
                         </div>
                     )}
                 </section>
+
+                <section className="glass-card table-card">
+                    <h3>Локальная база Web3-пользователей</h3>
+                    <p className="description-text">
+                        Пользователи сохраняются в локальную JSON-базу при
+                        подключении кошелька.
+                    </p>
+                    {registeredUsers.length === 0 ? (
+                        <p className="empty-msg">
+                            Сохраненных пользователей пока нет. Подключите
+                            кошелек, чтобы создать первую запись.
+                        </p>
+                    ) : (
+                        <div className="table-wrapper">
+                            <table className="partners-table">
+                                <thead>
+                                    <tr>
+                                        <th>Кошелек</th>
+                                        <th>Сеть</th>
+                                        <th>Сессии</th>
+                                        <th>Последний вход</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {registeredUsers.map((user) => (
+                                        <tr key={user.id}>
+                                            <td className="p-addr">
+                                                {formatWallet(
+                                                    user.walletAddress
+                                                )}
+                                            </td>
+                                            <td>{user.networkName || "-"}</td>
+                                            <td>{user.totalSessions}</td>
+                                            <td>
+                                                {formatDateTime(user.lastSeenAt)}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </section>
+
+                {userReferrerId !== 0 && (
+                    <section className="glass-card">
+                        <h3>Параметры кешбек-модели</h3>
+                        <p className="description-text">
+                            Базовый кешбек: {contractConfig.basePercent}%,
+                            пользователю: {contractConfig.userShare}%, резерву:{" "}
+                            {contractConfig.reserveShare}%, сжигание:{" "}
+                            {contractConfig.burnShare}%.
+                        </p>
+                        <p className="description-text">
+                            Интерфейс может показывать рублевый эквивалент, но
+                            on-chain расчеты выполняются в ETH.
+                        </p>
+                    </section>
+                )}
             </div>
 
             <style jsx>{`
                 .dashboard-container {
-                    background: #0f172a;
+                    background:
+                        radial-gradient(circle at top right, rgba(217, 53, 53, 0.12), transparent 22%),
+                        radial-gradient(circle at top left, rgba(31, 95, 255, 0.18), transparent 28%),
+                        #08111f;
                     min-height: 100vh;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
                     padding: 60px 20px;
-                    font-family: "Inter", sans-serif;
+                    font-family: "Segoe UI", "Trebuchet MS", sans-serif;
                     color: #f8fafc;
                 }
 
@@ -382,27 +457,80 @@ function MyDashboard() {
                     gap: 25px;
                 }
 
+                .dashboard-header {
+                    text-align: center;
+                    margin-bottom: 28px;
+                }
+
+                .dashboard-header h1 {
+                    margin: 0 0 10px;
+                    font-size: clamp(2.4rem, 5vw, 3.4rem);
+                    letter-spacing: -0.04em;
+                    color: #f7f9fc;
+                }
+
+                .subtitle {
+                    max-width: 640px;
+                    margin: 0;
+                    color: #9bb0d0;
+                    line-height: 1.6;
+                }
+
                 .glass-card {
-                    background: rgba(30, 41, 59, 0.7);
-                    backdrop-filter: blur(12px);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 20px;
+                    background: rgba(13, 25, 43, 0.82);
+                    backdrop-filter: blur(14px);
+                    border: 1px solid rgba(177, 194, 220, 0.14);
+                    border-radius: 24px;
                     padding: 24px;
-                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+                    box-shadow: 0 24px 60px rgba(3, 10, 25, 0.32);
+                }
+
+                .glass-card h3 {
+                    margin-top: 0;
+                    margin-bottom: 16px;
+                    color: #f7f9fc;
                 }
 
                 .card-header {
-                    text-align: center;
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 14px;
                     margin-bottom: 20px;
                 }
+
                 .icon-badge {
-                    font-size: 2rem;
-                    margin-bottom: 10px;
+                    width: 52px;
+                    height: 52px;
+                    border-radius: 16px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                    font-size: 0.95rem;
+                    font-weight: 800;
+                    letter-spacing: 0.08em;
+                    color: #ffffff;
+                    background: linear-gradient(
+                        135deg,
+                        #1f5fff 0%,
+                        #1845bf 60%,
+                        #d93535 100%
+                    );
+                    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
                 }
+
                 .description-text {
-                    color: #94a3b8;
-                    font-size: 0.9rem;
-                    margin-bottom: 20px;
+                    color: #9bb0d0;
+                    font-size: 0.92rem;
+                    margin-bottom: 16px;
+                    line-height: 1.6;
+                }
+
+                .description-text code {
+                    padding: 2px 6px;
+                    border-radius: 8px;
+                    background: rgba(255, 255, 255, 0.08);
+                    color: #f7f9fc;
                 }
 
                 .partner-form {
@@ -413,10 +541,10 @@ function MyDashboard() {
 
                 .modern-input {
                     width: 100%;
-                    background: rgba(15, 23, 42, 0.6);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    background: rgba(6, 14, 27, 0.78);
+                    border: 1px solid rgba(177, 194, 220, 0.12);
                     padding: 12px 16px;
-                    border-radius: 10px;
+                    border-radius: 14px;
                     color: white;
                     font-size: 0.95rem;
                     outline: none;
@@ -425,7 +553,8 @@ function MyDashboard() {
                 }
 
                 .modern-input:focus {
-                    border-color: #6366f1;
+                    border-color: #1f5fff;
+                    box-shadow: 0 0 0 3px rgba(31, 95, 255, 0.12);
                 }
 
                 .submit-btn {
@@ -433,13 +562,14 @@ function MyDashboard() {
                     padding: 14px;
                     background: linear-gradient(
                         135deg,
-                        #6366f1 0%,
-                        #a855f7 100%
+                        #1f5fff 0%,
+                        #1845bf 60%,
+                        #d93535 100%
                     );
                     border: none;
-                    border-radius: 10px;
+                    border-radius: 14px;
                     color: white;
-                    font-weight: 600;
+                    font-weight: 700;
                     cursor: pointer;
                     position: relative;
                     overflow: hidden;
@@ -452,69 +582,84 @@ function MyDashboard() {
                 }
 
                 .balance-box {
-                    background: rgba(0, 0, 0, 0.2);
-                    border-radius: 15px;
-                    padding: 20px;
+                    background: rgba(5, 14, 28, 0.74);
+                    border: 1px solid rgba(177, 194, 220, 0.09);
+                    border-radius: 18px;
+                    padding: 24px;
                     text-align: center;
                     margin-bottom: 15px;
                 }
+
                 .balance-value {
-                    font-size: 2.2rem;
+                    font-size: 2.4rem;
                     font-weight: 800;
-                    color: #818cf8;
+                    color: #f7f9fc;
                 }
+
                 .balance-label {
                     margin-left: 10px;
-                    color: #94a3b8;
+                    color: #9bb0d0;
                 }
 
                 .action-button.mint {
                     width: 100%;
                     padding: 12px;
                     background: transparent;
-                    border: 1px solid #6366f1;
-                    color: #818cf8;
-                    border-radius: 10px;
+                    border: 1px solid rgba(31, 95, 255, 0.52);
+                    color: #cfe0ff;
+                    border-radius: 14px;
                     cursor: pointer;
-                    font-weight: 500;
+                    font-weight: 600;
                 }
 
                 .table-wrapper {
                     overflow-x: auto;
                     margin-top: 15px;
                 }
+
+                .empty-msg {
+                    margin: 0;
+                    color: #c8d3e7;
+                }
+
                 .partners-table {
                     width: 100%;
                     border-collapse: collapse;
                     font-size: 0.9rem;
                 }
+
                 .partners-table th {
                     text-align: left;
                     padding: 12px;
-                    color: #64748b;
-                    border-bottom: 1px solid #334155;
+                    color: #7f95b5;
+                    border-bottom: 1px solid rgba(177, 194, 220, 0.12);
                 }
+
                 .partners-table td {
                     padding: 12px;
-                    border-bottom: 1px solid #1e293b;
+                    border-bottom: 1px solid rgba(177, 194, 220, 0.06);
                 }
+
                 .p-name {
                     display: block;
                     font-weight: 600;
                     color: #f1f5f9;
                 }
+
                 .p-desc {
                     font-size: 0.75rem;
-                    color: #64748b;
+                    color: #7f95b5;
                 }
+
                 .p-addr {
                     font-family: monospace;
-                    color: #818cf8;
+                    color: #cfe0ff;
                 }
 
                 .status-tag.active {
                     color: #4ade80;
                 }
+
                 .status-tag.inactive {
                     color: #f87171;
                 }
@@ -524,9 +669,11 @@ function MyDashboard() {
                     margin-top: 10px;
                     font-size: 0.85rem;
                 }
+
                 .msg.error {
                     color: #f87171;
                 }
+
                 .msg.success {
                     color: #4ade80;
                 }
