@@ -5,7 +5,7 @@ import React, {
     useEffect,
     useState,
 } from "react";
-import { BrowserProvider } from "ethers";
+import { BrowserProvider, toBigInt } from "ethers";
 import {
     EXPECTED_CHAIN_ID,
     EXPECTED_CHAIN_NAME,
@@ -34,7 +34,7 @@ export const useWeb3Auth = () => {
 };
 
 const READ_ONLY_NETWORK = {
-    chainId: BigInt(EXPECTED_CHAIN_ID),
+    chainId: toBigInt(EXPECTED_CHAIN_ID),
     name: EXPECTED_CHAIN_NAME,
 };
 
